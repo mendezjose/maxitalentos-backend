@@ -5,9 +5,19 @@ const { Job, validate } = require("../models/job");
 const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
+const regexGen = require("../utils/regexGen");
 
 router.get("/", async (req, res) => {
-  const jobs = await Job.find().select("-__v").sort("title");
+  console.log(regexGen(req.query.l));
+  const jobs = await Job.find({ title: new RegExp(req.query.q, "i") })
+    .and({
+      $or: [
+        { "location.city": regexGen(req.query.l) },
+        { "location.state": regexGen(req.query.l) },
+      ],
+    })
+    .select("-__v")
+    .sort("title");
   res.send(jobs);
 });
 
